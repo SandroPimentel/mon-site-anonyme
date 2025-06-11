@@ -2,78 +2,61 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-function loadMedias() {
-  if (typeof window !== "undefined") {
-    return JSON.parse(localStorage.getItem("medias") || "[]");
-  }
-  return [];
-}
-
 export default function MediaDetailPage() {
   const { id } = useParams();
   const [media, setMedia] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const all = loadMedias();
-    setMedia(all.find(m => String(m.id) === String(id)));
+    fetch("/api/upload")
+      .then(res => res.json())
+      .then(({ medias }) => {
+        const found = medias.find(m => String(m.id) === id);
+        setMedia(found || null);
+        setLoading(false);
+      });
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-zinc-900 text-white">
+        Chargement...
+      </div>
+    );
+  }
 
   if (!media) {
     return (
-      <div style={{height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", background: "#18181b"}}>
-        <h2>Média introuvable…</h2>
+      <div className="flex items-center justify-center h-screen bg-zinc-900 text-white">
+        Média introuvable…
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#18181b",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
-      {/* Titre + tags + bouton retour */}
-      <div style={{textAlign: "center", marginBottom: 28}}>
-        <h1 style={{color: "#fff"}}>{media.title}</h1>
-        <div style={{marginBottom: 12}}>
+    <div className="min-h-screen bg-zinc-900 flex flex-col items-center justify-center text-white p-6">
+      <div className="text-center mb-6">
+        <h1 className="text-3xl font-bold mb-3">{media.title}</h1>
+        <div className="mb-2">
           {media.tags.map(tag => (
-            <span key={tag} style={{
-              background: "#444", borderRadius: 6, padding: "4px 14px", marginRight: 10,
-              color: "#fff", fontSize: 16
-            }}>
-              #{tag}
-            </span>
+            <span key={tag} className="bg-zinc-700 rounded px-3 py-1 text-sm mr-2">#{tag}</span>
           ))}
         </div>
-        <div style={{color: "#aaa"}}>{media.date} {media.hour && media.hour.slice(0,2) + "h"}</div>
+        <div className="text-zinc-400">{media.date} à {media.hour.slice(0,5)}</div>
       </div>
 
-      {/* Media fullscreen */}
-      <div style={{marginBottom: 36}}>
+      <div className="mb-8">
         {media.fileType.startsWith("image") ? (
-          <img src={media.fileUrl} alt={media.title} style={{maxHeight: "75vh", borderRadius: 18, boxShadow: "0 4px 32px #0007"}} />
+          <img src={media.url} alt={media.title} className="max-h-[75vh] rounded-lg shadow-xl" />
         ) : (
-          <video src={media.fileUrl} controls style={{maxHeight: "75vh", borderRadius: 18, boxShadow: "0 4px 32px #0007", background: "#000"}} />
+          <video src={media.url} controls className="max-h-[75vh] rounded-lg shadow-xl" />
         )}
       </div>
 
-      {/* Bouton télécharger */}
       <a
-        href={media.fileUrl}
-        download={media.title || "media"}
-        style={{
-          background: "#444",
-          color: "#fff",
-          padding: "10px 26px",
-          borderRadius: 9,
-          fontSize: 18,
-          textDecoration: "none",
-          fontWeight: "bold",
-          opacity: 0.93
-        }}
+        href={media.url}
+        download={media.title}
+        className="bg-zinc-700 px-6 py-3 rounded-lg font-bold hover:bg-zinc-600"
       >
         Télécharger
       </a>

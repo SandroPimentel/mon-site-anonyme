@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@web3-storage/w3up-client": "^17.3.0",
+    "aws-sdk": "^2.1692.0",
+    "formidable": "^3.5.4",
     "next": "15.3.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

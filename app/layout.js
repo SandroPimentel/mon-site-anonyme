@@ -23,22 +23,6 @@ export default function RootLayout({ children }) {
           }}>
             Mon site anonyme
           </h1>
-          <Link href="/admin" style={{
-            position: "absolute",
-            right: 38,
-            top: 24,
-            fontWeight: "bold",
-            color: "#fff",
-            background: "#23232b",
-            padding: "7px 20px",
-            borderRadius: 9,
-            textDecoration: "none",
-            opacity: .86,
-            fontSize: 17,
-            transition: "background 0.1s"
-          }}>
-            Admin
-          </Link>
         </header>
         <main style={{ maxWidth: 800, margin: '2rem auto', padding: '2rem' }}>
           {children}

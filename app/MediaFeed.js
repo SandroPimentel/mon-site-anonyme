@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 function loadMedias() {
   if (typeof window !== "undefined") {
@@ -156,7 +157,6 @@ export default function MediaFeed() {
               className="media-card"
               key={media.id}
               tabIndex={0}
-              onClick={() => setFullscreenIndex(i)}
               style={{
                 cursor: "pointer",
                 background: "#23232b",
@@ -168,6 +168,7 @@ export default function MediaFeed() {
                 flexDirection: "column",
                 alignItems: "center"
               }}
+              onClick={() => setFullscreenIndex(i)}
             >
               {media.fileType.startsWith("image") ? (
                 <img
@@ -184,7 +185,23 @@ export default function MediaFeed() {
                   onClick={e => e.stopPropagation()} // pour ne pas passer en fullscreen si on clique play
                 />
               )}
-              <div style={{fontWeight: "bold", fontSize: 20, color: "#fff", marginBottom: 2}}>{media.title}</div>
+              <div style={{fontWeight: "bold", fontSize: 20, color: "#fff", marginBottom: 2}}>
+                {media.title}
+                <Link
+                  href={`/media/${media.id}`}
+                  style={{
+                    marginLeft: 14,
+                    color: "#77e",
+                    textDecoration: "underline",
+                    fontSize: 14,
+                    fontWeight: "bold",
+                    verticalAlign: "middle"
+                  }}
+                  onClick={e => e.stopPropagation()} // évite d’ouvrir le fullscreen quand on clique
+                >
+                  Consulter le média
+                </Link>
+              </div>
               <div style={{color: "#aaa", margin: "6px 0 6px 0"}}>
                 {media.date} {media.hour && media.hour.slice(0,2) + "h"}
               </div>

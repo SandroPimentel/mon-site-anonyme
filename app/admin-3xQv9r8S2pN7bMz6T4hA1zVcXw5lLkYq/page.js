@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// URL admin = /admin-3xQv9r8S2pN7bMz6T4hA1zVcXw5lLkYq
+const ADMIN_PASSWORD = "T0nM0t2ePaS5e_Ultra!2024"; // change si tu veux
+
 // Gestion du stockage local
 function saveMedias(medias) {
   localStorage.setItem("medias", JSON.stringify(medias));
@@ -21,11 +24,26 @@ export default function Admin() {
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [authed, setAuthed] = useState(false);
+  const [input, setInput] = useState("");
 
   useEffect(() => {
     setMedias(loadMedias());
     setIsMounted(true);
+    if (typeof window !== "undefined" && localStorage.getItem("admin-auth") === "1") {
+      setAuthed(true);
+    }
   }, []);
+
+  function handleLogin(e) {
+    e.preventDefault();
+    if (input === ADMIN_PASSWORD) {
+      setAuthed(true);
+      localStorage.setItem("admin-auth", "1");
+    } else {
+      alert("Mot de passe incorrect !");
+    }
+  }
 
   // Affiche un preview du fichier local
   function handleFileChange(e) {
@@ -41,11 +59,10 @@ export default function Admin() {
   }
 
   function handleDelete(id) {
-  const newList = medias.filter(m => m.id !== id);
-  setMedias(newList);
-  saveMedias(newList);
-}
-
+    const newList = medias.filter(m => m.id !== id);
+    setMedias(newList);
+    saveMedias(newList);
+  }
 
   // Ajout d’un media (stocké en base64 dans localStorage)
   const handleSubmit = (e) => {
@@ -71,6 +88,27 @@ export default function Admin() {
     };
     reader.readAsDataURL(file);
   };
+
+  if (!authed) {
+    return (
+      <div style={{
+        minHeight: "100vh", display: "flex", flexDirection: "column",
+        justifyContent: "center", alignItems: "center", background: "#18181b"
+      }}>
+        <form onSubmit={handleLogin} style={{background: "#23232b", padding: 40, borderRadius: 12}}>
+          <h2 style={{marginBottom: 18}}>Accès admin</h2>
+          <input
+            type="password"
+            placeholder="Mot de passe"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            style={{padding: 12, borderRadius: 7, border: "none", fontSize: 18, background: "#18181b", color: "#fff", width: 220, marginBottom: 12}}
+          /><br/>
+          <button type="submit" style={{background: "#444", color: "#fff", padding: "8px 22px", border: "none", borderRadius: 7, fontSize: 18, marginTop: 12}}>Entrer</button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -146,49 +184,47 @@ export default function Admin() {
 
       <hr style={{margin: "32px 0"}}/>
 
-        <hr style={{margin: "32px 0"}}/>
-
-    <h2>Liste des médias uploadés</h2>
-    <ul style={{listStyle: "none", padding: 0}}>
-      {isMounted && medias.map(media => (
-        <li key={media.id} style={{marginBottom: 24, background: "#23232b", padding: 16, borderRadius: 8, position: "relative"}}>
-          <strong>{media.title}</strong> <br/>
-          <em>
-            {media.date} {media.hour && media.hour.slice(0,2) + "h"}
-          </em> <br/>
-          <span>
-            {media.tags.map(tag => (
-              <span key={tag} style={{background: "#444", borderRadius: 4, padding: "2px 8px", marginRight: 8, fontSize: 12}}>
-                #{tag}
-              </span>
-            ))}
-          </span>
-          <div style={{marginTop: 8}}>
-            {media.fileType.startsWith("image") ? (
-              <img src={media.fileUrl} alt={media.title} style={{maxWidth: 300, borderRadius: 8}} />
-            ) : (
-              <video src={media.fileUrl} controls style={{maxWidth: 300, borderRadius: 8}} />
-            )}
-          </div>
-          <button
-            onClick={() => handleDelete(media.id)}
-            style={{
-              position: "absolute",
-              top: 16, right: 16,
-              background: "#a00",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              padding: "4px 12px",
-              cursor: "pointer"
-            }}
-            title="Supprimer"
-          >
-            Supprimer
-          </button>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
+      <h2>Liste des médias uploadés</h2>
+      <ul style={{listStyle: "none", padding: 0}}>
+        {isMounted && medias.map(media => (
+          <li key={media.id} style={{marginBottom: 24, background: "#23232b", padding: 16, borderRadius: 8, position: "relative"}}>
+            <strong>{media.title}</strong> <br/>
+            <em>
+              {media.date} {media.hour && media.hour.slice(0,2) + "h"}
+            </em> <br/>
+            <span>
+              {media.tags.map(tag => (
+                <span key={tag} style={{background: "#444", borderRadius: 4, padding: "2px 8px", marginRight: 8, fontSize: 12}}>
+                  #{tag}
+                </span>
+              ))}
+            </span>
+            <div style={{marginTop: 8}}>
+              {media.fileType.startsWith("image") ? (
+                <img src={media.fileUrl} alt={media.title} style={{maxWidth: 300, borderRadius: 8}} />
+              ) : (
+                <video src={media.fileUrl} controls style={{maxWidth: 300, borderRadius: 8}} />
+              )}
+            </div>
+            <button
+              onClick={() => handleDelete(media.id)}
+              style={{
+                position: "absolute",
+                top: 16, right: 16,
+                background: "#a00",
+                color: "#fff",
+                border: "none",
+                borderRadius: 4,
+                padding: "4px 12px",
+                cursor: "pointer"
+              }}
+              title="Supprimer"
+            >
+              Supprimer
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }

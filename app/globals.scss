@@ -43,3 +43,11 @@ nav a:hover {
 .media-card:hover {
   box-shadow: 0 2px 18px #0005;
 }
+
+
+a[href="/admin"] {
+  &:hover {
+    background: #444 !important;
+    opacity: 1 !important;
+  }
+}

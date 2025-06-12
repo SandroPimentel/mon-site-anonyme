@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         .promise();
 
       // Construis l’URL publique
-      const publicUrl = `${PUBLIC_GATEWAY}/${BUCKET}/${key}`;
+      const publicUrl = `${PUBLIC_GATEWAY}/${process.env.R2_BUCKET}/${key}`;
 
       // Construis l’objet méta
       const meta = {

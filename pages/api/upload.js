@@ -17,6 +17,9 @@ function parseForm(req) {
   });
 }
 
+// Debug de la gateway publique
+console.log("▶️ [DEBUG] R2_PUBLIC_GATEWAY =", process.env.R2_PUBLIC_GATEWAY);
+
 // Initialise le client S3 (Cloudflare R2)
 const r2 = new S3({
   endpoint: process.env.R2_ENDPOINT,
@@ -28,8 +31,8 @@ const r2 = new S3({
   s3ForcePathStyle: true,
   signatureVersion: "v4",
 });
+
 const BUCKET = process.env.R2_BUCKET;
-const PUBLIC_GATEWAY = process.env.R2_PUBLIC_GATEWAY;
 
 export default async function handler(req, res) {
   console.log("[API] upload hit", req.method);
@@ -66,7 +69,7 @@ export default async function handler(req, res) {
         .promise();
 
       // Construis l’URL publique
-      const publicUrl = `${PUBLIC_GATEWAY}/${process.env.R2_BUCKET}/${key}`;
+      const publicUrl = `${process.env.R2_PUBLIC_GATEWAY}/${BUCKET}/${key}`;
 
       // Construis l’objet méta
       const meta = {

@@ -17,9 +17,6 @@ function parseForm(req) {
   });
 }
 
-// Debug de la gateway publique
-console.log("▶️ [DEBUG] R2_PUBLIC_GATEWAY =", process.env.R2_PUBLIC_GATEWAY);
-
 // Initialise le client S3 (Cloudflare R2)
 const r2 = new S3({
   endpoint: process.env.R2_ENDPOINT,
@@ -31,13 +28,9 @@ const r2 = new S3({
   s3ForcePathStyle: true,
   signatureVersion: "v4",
 });
-
 const BUCKET = process.env.R2_BUCKET;
 
 export default async function handler(req, res) {
-  console.log("[API] upload hit", req.method);
-
-  // --- POST : upload d’un média ---
   if (req.method === "POST") {
     let fields, files;
     try {
@@ -53,57 +46,44 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No file" });
     }
 
-    // Génère une key unique
     const original = file.originalFilename || file.newFilename || file.name || "media";
     const key = `${Date.now()}_${original.replace(/[^\w.]/g, "_")}`;
 
     try {
-      // Upload sur R2
-      await r2
-        .upload({
-          Bucket: BUCKET,
-          Key: key,
-          Body: fs.createReadStream(file.filepath),
-          ContentType: file.mimetype || file.type,
-        })
-        .promise();
+      await r2.upload({
+        Bucket: BUCKET,
+        Key: key,
+        Body: fs.createReadStream(file.filepath),
+        ContentType: file.mimetype || file.type,
+      }).promise();
 
-      // Construis l’URL publique
-      const publicUrl = `${process.env.R2_PUBLIC_GATEWAY}/${BUCKET}/${key}`;
-
-      // Construis l’objet méta
       const meta = {
+        key,                         // ← on expose la clé
         id: Date.now(),
         title: fields.title,
         date: fields.date,
         hour: fields.hour,
         tags: (Array.isArray(fields.tags) ? fields.tags[0] : fields.tags || "")
           .split(",")
-          .map((t) => t.trim())
+          .map(t => t.trim())
           .filter(Boolean),
-        fileUrl: publicUrl,
-        fileType: file.mimetype || file.type,
         createdAt: `${fields.date}T${fields.hour}:00`,
       };
 
-      // Mets à jour medias.json
+      // mise à jour de medias.json
       let all = [];
       try {
         const list = await r2.getObject({ Bucket: BUCKET, Key: "medias.json" }).promise();
         all = JSON.parse(list.Body.toString());
-      } catch {
-        all = [];
-      }
-      all.unshift(meta);
+      } catch { all = []; }
 
-      await r2
-        .putObject({
-          Bucket: BUCKET,
-          Key: "medias.json",
-          Body: JSON.stringify(all),
-          ContentType: "application/json",
-        })
-        .promise();
+      all.unshift(meta);
+      await r2.putObject({
+        Bucket: BUCKET,
+        Key: "medias.json",
+        Body: JSON.stringify(all),
+        ContentType: "application/json",
+      }).promise();
 
       return res.status(200).json(meta);
     } catch (e) {
@@ -112,7 +92,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // --- GET : liste des médias ---
   if (req.method === "GET") {
     try {
       const list = await r2.getObject({ Bucket: BUCKET, Key: "medias.json" }).promise();
@@ -123,7 +102,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // Méthode non autorisée
-  res.setHeader("Allow", ["GET", "POST"]);
+  res.setHeader("Allow", ["GET","POST"]);
   res.status(405).json({ error: "Method not allowed" });
 }

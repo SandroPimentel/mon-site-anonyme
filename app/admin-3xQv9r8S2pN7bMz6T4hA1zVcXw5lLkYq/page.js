@@ -15,13 +15,10 @@ export default function Admin() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Charge la liste des médias depuis wasabi
   async function fetchMedias() {
     setLoading(true);
     const res = await fetch("/api/upload");
-    if (res.ok) {
-      setMedias(await res.json());
-    }
+    if (res.ok) setMedias(await res.json());
     setLoading(false);
   }
 
@@ -50,9 +47,7 @@ export default function Admin() {
       const reader = new FileReader();
       reader.onload = (evt) => setFilePreview(evt.target.result);
       reader.readAsDataURL(f);
-    } else {
-      setFilePreview(null);
-    }
+    } else setFilePreview(null);
   }
 
   async function handleSubmit(e) {
@@ -65,7 +60,7 @@ export default function Admin() {
     formData.append("date", date);
     formData.append("hour", hour);
     formData.append("tags", tags);
-    formData.append("password", ADMIN_PASSWORD);
+
     const res = await fetch("/api/upload", { method: "POST", body: formData });
     setLoading(false);
     if (res.ok) {
@@ -73,7 +68,8 @@ export default function Admin() {
       setTitle(""); setDate(""); setHour(""); setTags(""); setFile(null); setFilePreview(null);
       document.getElementById("file-input").value = "";
     } else {
-      alert("Erreur upload !");
+      const err = await res.json().catch(() => null);
+      alert("Erreur upload ! " + (err && err.error ? err.error : ""));
     }
   }
 
